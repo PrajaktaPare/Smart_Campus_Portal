@@ -1,0 +1,64 @@
+.dashboard-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.card {
+  border: none;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card-title {
+  color: #333;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.table-custom th, .table-custom td {
+  vertical-align: middle;
+  padding: 12px 15px;
+}
+
+.table-custom th {
+  background-color: #e9ecef;
+  color: #495057;
+  font-weight: 600;
+}
+
+.table-custom tbody tr:hover {
+  background-color: #f1f3f5;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  border: none;
+  transition: transform 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #5a0fa9 0%, #1f62d6 100%);
+}
+
+.btn-outline-primary {
+  border-color: #2575fc;
+  color: #2575fc;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  background-color: #2575fc;
+  color: white;
+}
+
+.badge {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border-radius: 12px;
+}
