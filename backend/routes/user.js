@@ -1,41 +1,36 @@
 const express = require("express")
-const User = require("../models/User")
-const auth = require("../middleware/auth")
 const router = express.Router()
+const userController = require("../controllers/userController")
+const auth = require("../middleware/auth")
 
 // Get all users (admin only)
-router.get("/", auth, async (req, res) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ message: "Access denied" })
-  }
+router.get("/", auth, userController.getAllUsers)
 
-  try {
-    const users = await User.find().select("-password")
-    res.json(users)
-  } catch (err) {
-    res.status(500).json({ message: err.message })
-  }
-})
+// Get all students
+router.get("/students", auth, userController.getStudents)
+
+// Get all faculty
+router.get("/faculty", auth, userController.getFaculty)
+
+// Get user by ID
+router.get("/:id", auth, userController.getUserById)
+
+// Create a new user (admin only)
+router.post("/", auth, userController.createUser)
+
+// Update user
+router.put("/:id", auth, userController.updateUser)
+
+// Delete user (admin only)
+router.delete("/:id", auth, userController.deleteUser)
 
 // Get user profile
-router.get("/profile", auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId).select("-password")
-    res.json(user)
-  } catch (err) {
-    res.status(500).json({ message: err.message })
-  }
-})
+router.get("/profile", auth, userController.getProfile)
 
 // Update user profile
-router.put("/profile", auth, async (req, res) => {
-  try {
-    const { name, email } = req.body
-    const user = await User.findByIdAndUpdate(req.user.userId, { name, email }, { new: true }).select("-password")
-    res.json(user)
-  } catch (err) {
-    res.status(500).json({ message: err.message })
-  }
-})
+router.put("/profile", auth, userController.updateProfile)
+
+// Change password
+router.put("/change-password", auth, userController.changePassword)
 
 module.exports = router

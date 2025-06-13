@@ -1,7 +1,27 @@
-const express = require('express');
-const router = express.Router();
-const { getCourses } = require('../controllers/courseController');
+const express = require("express")
+const router = express.Router()
+const courseController = require("../controllers/courseController")
+const auth = require("../middleware/auth")
 
-router.get('/', getCourses);
+// Get all courses
+router.get("/", auth, courseController.getAllCourses)
 
-module.exports = router;
+// Get course by ID
+router.get("/:courseId", auth, courseController.getCourseById)
+
+// Create a new course
+router.post("/", auth, courseController.createCourse)
+
+// Update a course
+router.put("/:courseId", auth, courseController.updateCourse)
+
+// Enroll students in a course
+router.post("/:courseId/enroll", auth, courseController.enrollStudents)
+
+// Remove students from a course
+router.post("/:courseId/remove", auth, courseController.removeStudents)
+
+// Add course material
+router.post("/:courseId/material", auth, courseController.addCourseMaterial)
+
+module.exports = router

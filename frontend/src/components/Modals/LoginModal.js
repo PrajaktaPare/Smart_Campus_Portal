@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
+import { authService } from "../../services/api"
+import { toast } from "react-toastify"
 
 const LoginModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -20,24 +22,21 @@ const LoginModal = ({ isOpen, onClose }) => {
     setError("")
 
     try {
-      // Mock authentication - replace with actual API call
-      const mockUsers = [
-        { email: "student@edu.com", password: "password", role: "student", name: "John Doe" },
-        { email: "faculty@edu.com", password: "password", role: "faculty", name: "Dr. Smith" },
-        { email: "admin@edu.com", password: "password", role: "admin", name: "Admin User" },
-      ]
+      // Use the authService to login
+      const response = await authService.login(formData)
+      const { token, user } = response.data
 
-      const user = mockUsers.find((u) => u.email === formData.email && u.password === formData.password)
+      // Store user data in localStorage
+      localStorage.setItem("token", token)
+      localStorage.setItem("user", JSON.stringify(user))
 
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user))
-        onClose()
-        navigate(`/${user.role}-dashboard`)
-      } else {
-        setError("Invalid email or password. Please try again.")
-      }
+      toast.success("Login successful! Welcome back.")
+      onClose()
+      navigate(`/${user.role}-dashboard`)
     } catch (err) {
-      setError("Login failed. Please try again.")
+      console.error("Login error:", err)
+      setError(err.response?.data?.message || "Invalid email or password. Please try again.")
+      toast.error("Login failed. Please check your credentials.")
     } finally {
       setIsLoading(false)
     }

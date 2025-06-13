@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
+import { authService } from "../../services/api"
+import { toast } from "react-toastify"
 
 const SignupModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -10,7 +12,7 @@ const SignupModal = ({ isOpen, onClose }) => {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "",
+    role: "student",
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -38,14 +40,31 @@ const SignupModal = ({ isOpen, onClose }) => {
     }
 
     try {
-      // Mock signup - replace with actual API call
+      // Use the authService to register
+      const response = await authService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      })
+
+      const { token, user } = response.data
+
+      // Store user data in localStorage
+      localStorage.setItem("token", token)
+      localStorage.setItem("user", JSON.stringify(user))
+
       setSuccess("Account created successfully! Redirecting...")
+      toast.success("Account created successfully!")
+
       setTimeout(() => {
         onClose()
         navigate(`/${formData.role}-dashboard`)
       }, 2000)
     } catch (err) {
-      setError("Signup failed. Please try again.")
+      console.error("Signup error:", err)
+      setError(err.response?.data?.message || "Signup failed. Please try again.")
+      toast.error("Signup failed. Please try again.")
     } finally {
       setIsLoading(false)
     }

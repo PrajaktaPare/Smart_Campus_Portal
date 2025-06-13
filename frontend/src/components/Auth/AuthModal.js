@@ -68,8 +68,10 @@ const AuthModal = ({ show, onHide, mode = "login", switchMode }) => {
         onHide()
       }
     } catch (err) {
-      setError(err.response?.data?.message || (isLogin ? "Login failed" : "Registration failed"))
-      toast.error(err.response?.data?.message || (isLogin ? "Login failed" : "Registration failed"))
+      console.error("Auth error:", err)
+      const errorMessage = err.response?.data?.message || (isLogin ? "Login failed" : "Registration failed")
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
