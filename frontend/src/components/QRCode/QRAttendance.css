@@ -1,0 +1,324 @@
+.qr-attendance-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.qr-attendance-modal {
+  background-color: white;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.qr-modal-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qr-modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+
+.qr-modal-tabs {
+  display: flex;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #495057;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover {
+  background-color: #f8f9fa;
+}
+
+.tab-btn.active {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+  font-weight: 500;
+}
+
+.qr-modal-content {
+  padding: 20px;
+}
+
+.qr-generator,
+.qr-scanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.course-info {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.course-name {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.course-id {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.qr-container {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.qr-timer {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.timer-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.timer-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #007bff;
+  margin-right: 5px;
+}
+
+.timer-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.timer-bar {
+  height: 6px;
+  background-color: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.timer-progress {
+  height: 100%;
+  background-color: #007bff;
+  border-radius: 3px;
+  transition: width 1s linear;
+}
+
+.qr-actions {
+  margin-bottom: 20px;
+}
+
+.qr-instructions {
+  width: 100%;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.qr-instructions h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.qr-instructions ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.qr-instructions li {
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.camera-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.camera-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scan-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.scan-target {
+  width: 200px;
+  height: 200px;
+  border: 2px solid white;
+  border-radius: 10px;
+  box-shadow: 0 0 0 5000px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.scan-target::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #007bff;
+  animation: scan 2s infinite linear;
+}
+
+@keyframes scan {
+  0% {
+    top: 0;
+  }
+  50% {
+    top: 100%;
+  }
+  100% {
+    top: 0;
+  }
+}
+
+.scanner-actions {
+  margin-bottom: 15px;
+}
+
+.scanner-instructions {
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.scan-result {
+  text-align: center;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.scan-result.success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.scan-result.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+.result-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.scan-result.success .result-icon {
+  color: #28a745;
+}
+
+.scan-result.error .result-icon {
+  color: #dc3545;
+}
+
+.result-message {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.result-timestamp {
+  color: #6c757d;
+  margin-bottom: 20px;
+}
+
+.scan-error {
+  text-align: center;
+  padding: 20px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.error-icon {
+  font-size: 2rem;
+  color: #dc3545;
+  margin-bottom: 10px;
+}
+
+.error-message {
+  margin-bottom: 20px;
+}
+
+@media (max-width: 576px) {
+  .qr-attendance-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .camera-container {
+    height: 250px;
+  }
+
+  .scan-target {
+    width: 150px;
+    height: 150px;
+  }
+}

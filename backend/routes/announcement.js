@@ -1,31 +1,26 @@
 const express = require("express")
-const Announcement = require("../models/Announcement")
-const auth = require("../middleware/auth")
 const router = express.Router()
+const { auth, requireRole } = require("../middleware/auth")
+const announcementController = require("../controllers/announcementController")
 
-// Get announcements
-router.get("/", async (req, res) => {
-  try {
-    const announcements = await Announcement.find().sort({ createdAt: -1 })
-    res.json(announcements)
-  } catch (err) {
-    res.status(500).json({ message: err.message })
-  }
-})
+console.log("📢 Announcement routes loaded")
 
-// Create announcement (admin/faculty only)
-router.post("/", auth, async (req, res) => {
-  if (req.user.role === "student") {
-    return res.status(403).json({ message: "Access denied" })
-  }
+// Apply auth middleware to all routes
+router.use(auth)
 
-  try {
-    const announcement = new Announcement(req.body)
-    await announcement.save()
-    res.status(201).json(announcement)
-  } catch (err) {
-    res.status(400).json({ message: err.message })
-  }
-})
+// Get all announcements
+router.get("/", announcementController.getAllAnnouncements)
+
+// Create announcement (Faculty and Admin only)
+router.post("/", requireRole(["faculty", "admin"]), announcementController.createAnnouncement)
+
+// Get announcement by ID
+router.get("/:announcementId", announcementController.getAnnouncementById)
+
+// Update announcement (Faculty and Admin only)
+router.put("/:announcementId", requireRole(["faculty", "admin"]), announcementController.updateAnnouncement)
+
+// Delete announcement (Faculty and Admin only)
+router.delete("/:announcementId", requireRole(["faculty", "admin"]), announcementController.deleteAnnouncement)
 
 module.exports = router

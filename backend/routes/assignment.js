@@ -1,21 +1,29 @@
 const express = require("express")
 const router = express.Router()
+const { auth, requireRole } = require("../middleware/auth")
 const assignmentController = require("../controllers/assignmentController")
-const auth = require("../middleware/auth")
 
-// Get all assignments for a course
-router.get("/course/:courseId", auth, assignmentController.getCourseAssignments)
+console.log("📝 Assignment routes loaded")
 
-// Get assignments for a student
-router.get("/student/:studentId", auth, assignmentController.getStudentAssignments)
+// Apply auth middleware to all routes
+router.use(auth)
 
-// Create a new assignment
-router.post("/", auth, assignmentController.createAssignment)
+// Get all assignments
+router.get("/", assignmentController.getAllAssignments)
 
-// Submit an assignment
-router.post("/:assignmentId/submit", auth, assignmentController.submitAssignment)
+// Create assignment (Faculty only)
+router.post("/", requireRole(["faculty"]), assignmentController.createAssignment)
 
-// Grade an assignment submission
-router.put("/:assignmentId/submission/:submissionId/grade", auth, assignmentController.gradeSubmission)
+// Get assignment by ID
+router.get("/:assignmentId", assignmentController.getAssignmentById)
+
+// Update assignment (Faculty only)
+router.put("/:assignmentId", requireRole(["faculty"]), assignmentController.updateAssignment)
+
+// Delete assignment (Faculty only)
+router.delete("/:assignmentId", requireRole(["faculty"]), assignmentController.deleteAssignment)
+
+// Submit assignment (Student only)
+router.post("/:assignmentId/submit", requireRole(["student"]), assignmentController.submitAssignment)
 
 module.exports = router

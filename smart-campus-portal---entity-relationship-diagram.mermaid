@@ -1,0 +1,150 @@
+erDiagram
+    User {
+        ObjectId _id PK
+        string name
+        string email UK
+        string password
+        enum role "student, faculty, admin"
+        string department
+        string studentId
+        string employeeId
+        string phone
+        string address
+        boolean isFirstLogin
+        ObjectId[] enrolledCourses FK
+        date createdAt
+        date updatedAt
+    }
+
+    Course {
+        ObjectId _id PK
+        string title
+        string code UK
+        string description
+        number credits
+        string department
+        enum semester "Fall, Spring, Summer"
+        number year
+        ObjectId instructor FK
+        ObjectId[] students FK
+        boolean isActive
+        date createdAt
+        date updatedAt
+    }
+
+    Assignment {
+        ObjectId _id PK
+        string title
+        string description
+        ObjectId course FK
+        date dueDate
+        ObjectId createdBy FK
+        object[] attachments
+        number totalMarks
+        object[] submissions
+        date createdAt
+    }
+
+    Attendance {
+        ObjectId _id PK
+        ObjectId course FK
+        date date
+        ObjectId markedBy FK
+        object[] records
+        date createdAt
+    }
+
+    Grade {
+        ObjectId _id PK
+        ObjectId student FK
+        ObjectId course FK
+        ObjectId assignment FK
+        number marks
+        number totalMarks
+        string grade
+        string semester
+        string feedback
+        ObjectId gradedBy FK
+        date createdAt
+        date updatedAt
+    }
+
+    Event {
+        ObjectId _id PK
+        string title
+        string description
+        date date
+        string location
+        enum type "academic, cultural, sports, workshop, seminar, general"
+        ObjectId organizer FK
+        ObjectId[] attendees FK
+        number maxAttendees
+        boolean isActive
+        date registrationDeadline
+        date createdAt
+        date updatedAt
+    }
+
+    Notification {
+        ObjectId _id PK
+        ObjectId recipient FK
+        ObjectId sender FK
+        string title
+        string message
+        enum type "assignment, attendance, grade, announcement, event, message, system"
+        object relatedTo
+        boolean read
+        date createdAt
+    }
+
+    Resume {
+        ObjectId _id PK
+        ObjectId user FK
+        object personalInfo
+        string objective
+        object[] education
+        object[] experience
+        object[] projects
+        object skills
+        string[] certifications
+        string[] achievements
+        string[] languages
+        date lastUpdated
+        date createdAt
+        date updatedAt
+    }
+
+    Placement {
+        ObjectId _id PK
+        ObjectId studentId FK
+        string studentName
+        string company
+        string role
+        string status
+    }
+
+    Announcement {
+        ObjectId _id PK
+        string title
+        string content
+        date createdAt
+    }
+
+    %% Relationships
+    User ||--o{ Course : "instructor teaches"
+    User }o--o{ Course : "student enrolls"
+    User ||--o{ Assignment : "creates"
+    User ||--o{ Attendance : "marks"
+    User ||--o{ Grade : "receives/gives"
+    User ||--o{ Event : "organizes"
+    User }o--o{ Event : "attends"
+    User ||--o{ Notification : "receives"
+    User ||--o{ Notification : "sends"
+    User ||--|| Resume : "has"
+    User ||--o{ Placement : "has"
+    
+    Course ||--o{ Assignment : "has"
+    Course ||--o{ Attendance : "tracks"
+    Course ||--o{ Grade : "grades_for"
+    
+    Assignment ||--o{ Grade : "graded_as"

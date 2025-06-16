@@ -1,240 +1,255 @@
 const Assignment = require("../models/Assignment")
 const Course = require("../models/Course")
+const User = require("../models/User")
 const Notification = require("../models/Notification")
 
-// Get all assignments for a course
-exports.getCourseAssignments = async (req, res) => {
+// Get all assignments
+exports.getAllAssignments = async (req, res) => {
   try {
-    const { courseId } = req.params
+    console.log("📝 Getting all assignments for user:", req.user.email)
 
-    const assignments = await Assignment.find({ course: courseId })
-      .populate("createdBy", "name")
-      .sort({ createdAt: -1 })
+    const query = {}
 
-    res.status(200).json(assignments)
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
-  }
-}
-
-// Get assignments for a student
-exports.getStudentAssignments = async (req, res) => {
-  try {
-    const { studentId } = req.params
-
-    // Verify permissions
-    if (req.user.role === "student" && req.user.userId !== studentId) {
-      return res.status(403).json({ message: "Unauthorized access" })
+    // Filter based on user role
+    if (req.user.role === "student") {
+      // Get courses the student is enrolled in
+      const courses = await Course.find({ students: req.user.userId })
+      const courseIds = courses.map((course) => course._id)
+      query.course = { $in: courseIds }
+    } else if (req.user.role === "faculty") {
+      // Get courses the faculty teaches
+      const courses = await Course.find({ instructor: req.user.userId })
+      const courseIds = courses.map((course) => course._id)
+      query.course = { $in: courseIds }
     }
+    // Admin can see all assignments (no filter)
 
-    // Get courses the student is enrolled in
-    const courses = await Course.find({ students: studentId })
-    const courseIds = courses.map((course) => course._id)
-
-    // Get assignments for these courses
-    const assignments = await Assignment.find({ course: { $in: courseIds } })
+    const assignments = await Assignment.find(query)
       .populate("course", "code title")
       .populate("createdBy", "name")
       .sort({ dueDate: 1 })
 
-    // Format assignments with submission status
-    const formattedAssignments = assignments.map((assignment) => {
-      const submission = assignment.submissions.find((sub) => sub.student && sub.student.toString() === studentId)
-
-      return {
-        _id: assignment._id,
-        title: assignment.title,
-        description: assignment.description,
-        course: assignment.course,
-        dueDate: assignment.dueDate,
-        totalMarks: assignment.totalMarks,
-        createdBy: assignment.createdBy,
-        createdAt: assignment.createdAt,
-        submission: submission || null,
-        status: submission ? submission.status : new Date() > assignment.dueDate ? "overdue" : "pending",
-      }
-    })
-
-    res.status(200).json(formattedAssignments)
+    console.log(`✅ Found ${assignments.length} assignments`)
+    res.json(assignments)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error fetching assignments:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 
-// Create a new assignment
+// Create assignment
 exports.createAssignment = async (req, res) => {
   try {
-    const { title, description, courseId, dueDate, totalMarks, attachments } = req.body
-
-    // Verify permissions
-    if (req.user.role === "student") {
-      return res.status(403).json({ message: "Unauthorized access" })
-    }
-
-    // Check if course exists
-    const course = await Course.findById(courseId)
-    if (!course) {
-      return res.status(404).json({ message: "Course not found" })
-    }
-
-    // Check if faculty is assigned to this course
-    if (req.user.role === "faculty" && course.instructor.toString() !== req.user.userId) {
-      return res.status(403).json({ message: "You are not authorized to create assignments for this course" })
-    }
+    const { title, description, course, dueDate, maxPoints } = req.body
 
     const assignment = new Assignment({
       title,
       description,
-      course: courseId,
+      course,
       dueDate,
-      totalMarks,
-      attachments: attachments || [],
+      maxPoints: maxPoints || 100,
       createdBy: req.user.userId,
     })
 
     await assignment.save()
 
-    // Create notifications for all students in the course
-    for (const studentId of course.students) {
-      await Notification.create({
-        recipient: studentId,
-        sender: req.user.userId,
-        title: "New Assignment",
-        message: `A new assignment "${title}" has been posted for ${course.title}`,
-        type: "assignment",
-        relatedTo: {
-          model: "Assignment",
-          id: assignment._id,
-        },
-      })
+    const populatedAssignment = await Assignment.findById(assignment._id)
+      .populate("course", "code title")
+      .populate("createdBy", "name")
+
+    // Notify all students enrolled in this course
+    try {
+      const courseData = await Course.findById(course).populate("students", "_id name email")
+      if (courseData && courseData.students) {
+        const notifications = courseData.students.map((student) => ({
+          recipient: student._id,
+          title: `New Assignment: ${title}`,
+          message: `A new assignment "${title}" has been posted for ${courseData.code}. Due: ${new Date(dueDate).toLocaleDateString()}`,
+          type: "assignment",
+          relatedTo: {
+            model: "Assignment",
+            id: assignment._id,
+          },
+        }))
+
+        await Notification.insertMany(notifications)
+        console.log(`✅ Created notifications for ${notifications.length} students`)
+      }
+    } catch (notifError) {
+      console.warn("Failed to create notifications:", notifError)
     }
 
-    res.status(201).json(assignment)
+    console.log("✅ Assignment created:", populatedAssignment.title)
+    res.status(201).json(populatedAssignment)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error creating assignment:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 
-// Submit an assignment
+// Get assignment by ID
+exports.getAssignmentById = async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.assignmentId)
+      .populate("course", "code title")
+      .populate("createdBy", "name")
+      .populate("submissions.student", "name email")
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" })
+    }
+
+    res.json(assignment)
+  } catch (error) {
+    console.error("Error fetching assignment:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+}
+
+// Update assignment
+exports.updateAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params
+    const updates = req.body
+
+    const assignment = await Assignment.findByIdAndUpdate(assignmentId, updates, { new: true })
+      .populate("course", "code title")
+      .populate("createdBy", "name")
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" })
+    }
+
+    res.json(assignment)
+  } catch (error) {
+    console.error("Error updating assignment:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+}
+
+// Delete assignment
+exports.deleteAssignment = async (req, res) => {
+  try {
+    const assignment = await Assignment.findByIdAndDelete(req.params.assignmentId)
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" })
+    }
+
+    res.json({ message: "Assignment deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting assignment:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+}
+
+// Submit assignment
 exports.submitAssignment = async (req, res) => {
   try {
     const { assignmentId } = req.params
-    const { content, attachments } = req.body
-
-    // Verify permissions
-    if (req.user.role !== "student") {
-      return res.status(403).json({ message: "Only students can submit assignments" })
-    }
+    const { content, fileUrl } = req.body
 
     const assignment = await Assignment.findById(assignmentId)
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" })
     }
 
-    // Check if assignment is overdue
-    const isOverdue = new Date() > assignment.dueDate
+    // Check if student already submitted
+    const existingSubmission = assignment.submissions.find((sub) => sub.student.toString() === req.user.userId)
 
-    // Check if student has already submitted
-    const existingSubmissionIndex = assignment.submissions.findIndex(
-      (sub) => sub.student && sub.student.toString() === req.user.userId,
-    )
-
-    if (existingSubmissionIndex !== -1) {
+    if (existingSubmission) {
       // Update existing submission
-      assignment.submissions[existingSubmissionIndex] = {
-        ...assignment.submissions[existingSubmissionIndex],
-        content,
-        attachments: attachments || [],
-        submittedAt: new Date(),
-        status: isOverdue ? "late" : "submitted",
-      }
+      existingSubmission.content = content
+      existingSubmission.fileUrl = fileUrl
+      existingSubmission.submittedAt = new Date()
     } else {
-      // Add new submission
+      // Create new submission
       assignment.submissions.push({
         student: req.user.userId,
         content,
-        attachments: attachments || [],
+        fileUrl,
         submittedAt: new Date(),
-        status: isOverdue ? "late" : "submitted",
       })
     }
 
     await assignment.save()
 
-    // Get course details
-    const course = await Course.findById(assignment.course)
-
-    // Notify instructor
-    await Notification.create({
-      recipient: course.instructor,
-      sender: req.user.userId,
-      title: "Assignment Submission",
-      message: `A student has submitted the assignment "${assignment.title}"`,
-      type: "assignment",
-      relatedTo: {
-        model: "Assignment",
-        id: assignment._id,
-      },
-    })
-
-    res.status(200).json({ message: "Assignment submitted successfully" })
+    res.json({ message: "Assignment submitted successfully" })
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error submitting assignment:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 
-// Grade an assignment submission
+// Get assignment submissions (Faculty only)
+exports.getAssignmentSubmissions = async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.assignmentId)
+      .populate("course", "code title")
+      .populate("submissions.student", "name email")
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" })
+    }
+
+    res.json({
+      assignment: {
+        _id: assignment._id,
+        title: assignment.title,
+        description: assignment.description,
+        course: assignment.course,
+        dueDate: assignment.dueDate,
+        maxPoints: assignment.maxPoints,
+      },
+      submissions: assignment.submissions,
+    })
+  } catch (error) {
+    console.error("Error fetching assignment submissions:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+}
+
+// Grade assignment submission (Faculty only)
 exports.gradeSubmission = async (req, res) => {
   try {
     const { assignmentId, submissionId } = req.params
-    const { marks, feedback } = req.body
-
-    // Verify permissions
-    if (req.user.role === "student") {
-      return res.status(403).json({ message: "Unauthorized access" })
-    }
+    const { grade, feedback } = req.body
 
     const assignment = await Assignment.findById(assignmentId)
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" })
     }
 
-    // Find the submission
-    const submissionIndex = assignment.submissions.findIndex((sub) => sub._id.toString() === submissionId)
-
-    if (submissionIndex === -1) {
+    const submission = assignment.submissions.id(submissionId)
+    if (!submission) {
       return res.status(404).json({ message: "Submission not found" })
     }
 
-    // Update the submission
-    assignment.submissions[submissionIndex].marks = marks
-    assignment.submissions[submissionIndex].feedback = feedback
-    assignment.submissions[submissionIndex].status = "graded"
+    submission.grade = grade
+    submission.feedback = feedback
+    submission.gradedAt = new Date()
 
     await assignment.save()
 
-    // Notify student
-    const studentId = assignment.submissions[submissionIndex].student
+    // Create notification for student
+    try {
+      await Notification.create({
+        recipient: submission.student,
+        title: `Assignment Graded: ${assignment.title}`,
+        message: `Your assignment has been graded. Score: ${grade}/${assignment.maxPoints}`,
+        type: "grade",
+        relatedTo: {
+          model: "Assignment",
+          id: assignmentId,
+        },
+      })
+    } catch (notifError) {
+      console.warn("Failed to create notification:", notifError)
+    }
 
-    await Notification.create({
-      recipient: studentId,
-      sender: req.user.userId,
-      title: "Assignment Graded",
-      message: `Your submission for "${assignment.title}" has been graded`,
-      type: "assignment",
-      relatedTo: {
-        model: "Assignment",
-        id: assignment._id,
-      },
-    })
-
-    res.status(200).json({ message: "Submission graded successfully" })
+    res.json({ message: "Assignment graded successfully" })
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error grading assignment:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }

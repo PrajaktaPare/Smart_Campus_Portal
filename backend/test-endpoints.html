@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Endpoint Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .endpoint { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { padding: 5px 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 API Endpoint Tester</h1>
+    <div id="results"></div>
+    
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let authToken = null;
+
+        async function testEndpoint(path, method = 'GET', requiresAuth = false) {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (requiresAuth && authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                const response = await fetch(`${API_BASE}${path}`, {
+                    method,
+                    headers
+                });
+
+                const data = await response.json();
+                
+                resultsDiv.innerHTML += `
+                    <div class="endpoint ${response.ok ? 'success' : 'error'}">
+                        <strong>${method} ${path}</strong>: ${response.status}
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="endpoint error">
+                        <strong>${method} ${path}</strong>: Error - ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'student@test.com',
+                        password: 'password123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    authToken = data.token;
+                    document.getElementById('results').innerHTML += `
+                        <div class="endpoint success">
+                            <strong>LOGIN SUCCESS</strong>: Got auth token
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('results').innerHTML += `
+                        <div class="endpoint error">
+                            <strong>LOGIN FAILED</strong>: ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML += `
+                    <div class="endpoint error">
+                        <strong>LOGIN ERROR</strong>: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function runAllTests() {
+            document.getElementById('results').innerHTML = '<h2>🔄 Running Tests...</h2>';
+            
+            // Test health first
+            await testEndpoint('/health');
+            
+            // Test login
+            await testLogin();
+            
+            // Wait a bit for login to complete
+            setTimeout(async () => {
+                // Test protected endpoints
+                await testEndpoint('/courses', 'GET', true);
+                await testEndpoint('/courses/available', 'GET', true);
+                await testEndpoint('/events', 'GET', true);
+                await testEndpoint('/notifications', 'GET', true);
+            }, 1000);
+        }
+
+        // Auto-run tests when page loads
+        window.onload = runAllTests;
+    </script>
+
+    <button onclick="runAllTests()">🔄 Run Tests Again</button>
+    <button onclick="testLogin()">🔐 Test Login</button>
+    <button onclick="testEndpoint('/courses/available', 'GET', true)">📚 Test Available Courses</button>
+</body>
+</html>

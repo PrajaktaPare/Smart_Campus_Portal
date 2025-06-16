@@ -1,0 +1,280 @@
+.settings-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.settings-header {
+  margin-bottom: 20px;
+}
+
+.alert {
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.settings-content {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 30px;
+}
+
+.settings-sidebar {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-item {
+  padding: 15px 20px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+  transition: all 0.3s;
+}
+
+.nav-item:last-child {
+  border-bottom: none;
+}
+
+.nav-item:hover {
+  background-color: #f8f9fa;
+}
+
+.nav-item.active {
+  background-color: #e9ecef;
+  font-weight: 600;
+  color: #007bff;
+  border-left: 3px solid #007bff;
+}
+
+.settings-main {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.settings-section h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.settings-group {
+  margin-bottom: 30px;
+}
+
+.settings-group h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #495057;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+textarea.form-control {
+  resize: vertical;
+}
+
+.form-check {
+  margin-bottom: 10px;
+}
+
+.form-check-input {
+  margin-right: 10px;
+}
+
+.profile-picture-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-picture {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 20px;
+}
+
+.profile-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-picture-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.password-requirements {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.password-requirements h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.password-requirements ul {
+  padding-left: 20px;
+  margin-bottom: 0;
+}
+
+.password-requirements li {
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.theme-options,
+.color-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.theme-option input,
+.color-option input {
+  display: none;
+}
+
+.theme-label,
+.color-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.theme-preview,
+.color-preview {
+  width: 80px;
+  height: 50px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border: 2px solid transparent;
+}
+
+input:checked + .theme-label .theme-preview,
+input:checked + .color-label .color-preview {
+  border-color: #007bff;
+}
+
+.light-theme .theme-preview {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+}
+
+.dark-theme .theme-preview {
+  background-color: #343a40;
+}
+
+.system-theme .theme-preview {
+  background: linear-gradient(to right, #ffffff 50%, #343a40 50%);
+}
+
+.blue-color .color-preview {
+  background-color: #007bff;
+}
+
+.green-color .color-preview {
+  background-color: #28a745;
+}
+
+.purple-color .color-preview {
+  background-color: #6f42c1;
+}
+
+.orange-color .color-preview {
+  background-color: #fd7e14;
+}
+
+@media (max-width: 768px) {
+  .settings-content {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-sidebar {
+    margin-bottom: 20px;
+  }
+
+  .settings-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .nav-item {
+    border-bottom: none;
+    border-right: 1px solid #dee2e6;
+  }
+
+  .nav-item:last-child {
+    border-right: none;
+  }
+
+  .nav-item.active {
+    border-left: none;
+    border-bottom: 3px solid #007bff;
+  }
+
+  .profile-picture-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-picture {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+}

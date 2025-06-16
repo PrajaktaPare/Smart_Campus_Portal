@@ -32,15 +32,26 @@ const AuthModal = ({ show, onHide, mode = "login", switchMode }) => {
 
     try {
       if (isLogin) {
+        console.log("🔐 Attempting login with:", formData.email)
         const response = await authService.login({
           email: formData.email,
           password: formData.password,
         })
 
-        const { token, user } = response.data
-        login(user, token)
-        toast.success("Login successful! Welcome back.")
-        onHide()
+        console.log("📦 Login response received:", response)
+
+        // Handle different response structures
+        const token = response.token || response.data?.token
+        const user = response.user || response.data?.user
+
+        if (token && user) {
+          login(user, token)
+          toast.success("Login successful! Welcome back.")
+          onHide()
+        } else {
+          console.error("❌ Invalid response structure:", response)
+          throw new Error("Invalid login response - missing token or user data")
+        }
       } else {
         // Validation
         if (formData.password !== formData.confirmPassword) {
@@ -55,6 +66,7 @@ const AuthModal = ({ show, onHide, mode = "login", switchMode }) => {
           return
         }
 
+        console.log("📝 Attempting registration with:", formData.email)
         const response = await authService.register({
           name: formData.name,
           email: formData.email,
@@ -62,14 +74,25 @@ const AuthModal = ({ show, onHide, mode = "login", switchMode }) => {
           role: formData.role,
         })
 
-        const { token, user } = response.data
-        login(user, token)
-        toast.success("Account created successfully! Welcome to Smart Campus.")
-        onHide()
+        console.log("📦 Registration response received:", response)
+
+        // Handle different response structures
+        const token = response.token || response.data?.token
+        const user = response.user || response.data?.user
+
+        if (token && user) {
+          login(user, token)
+          toast.success("Account created successfully! Welcome to Smart Campus.")
+          onHide()
+        } else {
+          console.error("❌ Invalid response structure:", response)
+          throw new Error("Invalid registration response - missing token or user data")
+        }
       }
     } catch (err) {
-      console.error("Auth error:", err)
-      const errorMessage = err.response?.data?.message || (isLogin ? "Login failed" : "Registration failed")
+      console.error("💥 Auth error:", err)
+      const errorMessage =
+        err.response?.data?.message || err.message || (isLogin ? "Login failed" : "Registration failed")
       setError(errorMessage)
       toast.error(errorMessage)
     } finally {

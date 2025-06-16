@@ -1,21 +1,23 @@
 const express = require("express")
 const router = express.Router()
+const { auth, requireRole } = require("../middleware/auth")
 const notificationController = require("../controllers/notificationController")
-const auth = require("../middleware/auth")
 
-// Get notifications for the current user
-router.get("/", auth, notificationController.getUserNotifications)
+console.log("🔔 Notification routes loaded")
+
+// Apply auth middleware to all routes
+router.use(auth)
+
+// Get notifications for current user
+router.get("/", notificationController.getNotifications)
+
+// Create notification (Faculty and Admin only)
+router.post("/", requireRole(["faculty", "admin"]), notificationController.createNotification)
 
 // Mark notification as read
-router.put("/:notificationId/read", auth, notificationController.markAsRead)
+router.put("/:notificationId/read", notificationController.markAsRead)
 
-// Mark all notifications as read
-router.put("/read-all", auth, notificationController.markAllAsRead)
-
-// Delete a notification
-router.delete("/:notificationId", auth, notificationController.deleteNotification)
-
-// Create a notification (admin/faculty only)
-router.post("/", auth, notificationController.createNotification)
+// Delete notification
+router.delete("/:notificationId", notificationController.deleteNotification)
 
 module.exports = router

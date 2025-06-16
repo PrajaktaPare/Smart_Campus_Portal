@@ -1,18 +1,26 @@
 const express = require("express")
 const router = express.Router()
+const { auth, requireRole } = require("../middleware/auth")
 const attendanceController = require("../controllers/attendanceController")
-const auth = require("../middleware/auth")
 
-// Get attendance for a specific student
-router.get("/student/:studentId", auth, attendanceController.getStudentAttendance)
+console.log("📋 Attendance routes loaded")
 
-// Get attendance for a specific course
-router.get("/course/:courseId", auth, attendanceController.getCourseAttendance)
+// Apply auth middleware to all routes
+router.use(auth)
 
-// Mark attendance for a course
-router.post("/course/:courseId", auth, attendanceController.markAttendance)
+// Get attendance records
+router.get("/", attendanceController.getAttendance)
 
-// Get attendance statistics for a student
-router.get("/stats/:studentId", auth, attendanceController.getStudentAttendanceStats)
+// Mark attendance (Faculty only)
+router.post("/", requireRole(["faculty"]), attendanceController.markAttendance)
+
+// Get attendance by course
+router.get("/course/:courseId", attendanceController.getAttendanceByCourse)
+
+// Get attendance by student
+router.get("/student/:studentId", attendanceController.getAttendanceByStudent)
+
+// Update attendance (Faculty only)
+router.put("/:attendanceId", requireRole(["faculty"]), attendanceController.updateAttendance)
 
 module.exports = router

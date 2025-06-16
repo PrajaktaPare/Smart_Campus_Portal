@@ -3,14 +3,17 @@ const User = require("../models/User")
 const Notification = require("../models/Notification")
 
 // Get all events
-exports.getEvents = async (req, res) => {
+exports.getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find().populate("organizer", "name email").sort({ date: 1 })
+    const events = await Event.find()
+      .populate("organizer", "name email")
+      .populate("attendees", "name email")
+      .sort({ date: 1 })
 
     res.status(200).json(events)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error fetching events:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 
@@ -27,17 +30,17 @@ exports.getEventById = async (req, res) => {
 
     res.status(200).json(event)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error fetching event:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 
-// Create a new event
+// Create new event
 exports.createEvent = async (req, res) => {
   try {
-    const { title, description, date, location } = req.body
+    const { title, description, date, location, type } = req.body
 
-    // Only faculty and admin can create events
+    // Verify permissions
     if (req.user.role === "student") {
       return res.status(403).json({ message: "Unauthorized access" })
     }
@@ -47,206 +50,109 @@ exports.createEvent = async (req, res) => {
       description,
       date,
       location,
+      type: type || "general",
       organizer: req.user.userId,
-      attendees: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     })
 
     await event.save()
 
-    // Populate organizer details for response
     const populatedEvent = await Event.findById(event._id).populate("organizer", "name email")
-
-    // Notify all users about the new event
-    const users = await User.find({ role: "student" })
-
-    for (const user of users) {
-      await Notification.create({
-        recipient: user._id,
-        sender: req.user.userId,
-        title: "New Event",
-        message: `A new event "${title}" has been created`,
-        type: "event",
-        relatedTo: {
-          model: "Event",
-          id: event._id,
-        },
-      })
-    }
 
     res.status(201).json(populatedEvent)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error creating event:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 
-// Update an event
+// Update event
 exports.updateEvent = async (req, res) => {
   try {
     const { eventId } = req.params
-    const { title, description, date, location } = req.body
+    const updates = req.body
 
-    const event = await Event.findById(eventId)
+    // Verify permissions
+    if (req.user.role === "student") {
+      return res.status(403).json({ message: "Unauthorized access" })
+    }
+
+    const event = await Event.findByIdAndUpdate(eventId, updates, { new: true }).populate("organizer", "name email")
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" })
     }
 
-    // Check if user is authorized to update this event
-    if (
-      req.user.role === "student" ||
-      (req.user.role === "faculty" && event.organizer.toString() !== req.user.userId)
-    ) {
-      return res.status(403).json({ message: "Unauthorized access" })
-    }
-
-    // Update fields
-    if (title) event.title = title
-    if (description) event.description = description
-    if (date) event.date = date
-    if (location) event.location = location
-
-    event.updatedAt = new Date()
-
-    await event.save()
-
-    // Populate organizer details for response
-    const populatedEvent = await Event.findById(event._id).populate("organizer", "name email")
-
-    // Notify attendees about the updated event
-    for (const attendeeId of event.attendees) {
-      await Notification.create({
-        recipient: attendeeId,
-        sender: req.user.userId,
-        title: "Event Updated",
-        message: `The event "${event.title}" has been updated`,
-        type: "event",
-        relatedTo: {
-          model: "Event",
-          id: event._id,
-        },
-      })
-    }
-
-    res.status(200).json(populatedEvent)
+    res.status(200).json(event)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error updating event:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 
-// RSVP to an event
+// Delete event
+exports.deleteEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params
+
+    // Verify permissions
+    if (req.user.role === "student") {
+      return res.status(403).json({ message: "Unauthorized access" })
+    }
+
+    const event = await Event.findByIdAndDelete(eventId)
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" })
+    }
+
+    res.status(200).json({ message: "Event deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting event:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+}
+
+// RSVP to event
 exports.rsvpEvent = async (req, res) => {
   try {
     const { eventId } = req.params
 
     const event = await Event.findById(eventId)
-
     if (!event) {
       return res.status(404).json({ message: "Event not found" })
     }
 
-    // Check if user is already attending
+    // Check if user already RSVP'd
     if (event.attendees.includes(req.user.userId)) {
-      return res.status(400).json({ message: "You are already attending this event" })
+      return res.status(400).json({ message: "Already RSVP'd to this event" })
     }
 
-    // Add user to attendees
     event.attendees.push(req.user.userId)
-    event.updatedAt = new Date()
-
     await event.save()
 
-    // Notify event organizer
-    await Notification.create({
-      recipient: event.organizer,
-      sender: req.user.userId,
-      title: "Event RSVP",
-      message: `${req.user.name} is attending your event "${event.title}"`,
-      type: "event",
-      relatedTo: {
-        model: "Event",
-        id: event._id,
-      },
-    })
-
-    res.status(200).json({ message: "RSVP successful", event })
+    res.status(200).json({ message: "RSVP successful" })
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error RSVP'ing to event:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 
-// Cancel RSVP to an event
+// Cancel RSVP
 exports.cancelRsvp = async (req, res) => {
   try {
     const { eventId } = req.params
 
     const event = await Event.findById(eventId)
-
     if (!event) {
       return res.status(404).json({ message: "Event not found" })
     }
 
-    // Check if user is attending
-    if (!event.attendees.includes(req.user.userId)) {
-      return res.status(400).json({ message: "You are not attending this event" })
-    }
-
-    // Remove user from attendees
-    event.attendees = event.attendees.filter((attendeeId) => attendeeId.toString() !== req.user.userId)
-    event.updatedAt = new Date()
-
+    event.attendees = event.attendees.filter((attendee) => attendee.toString() !== req.user.userId)
     await event.save()
 
-    res.status(200).json({ message: "RSVP cancelled successfully", event })
+    res.status(200).json({ message: "RSVP cancelled successfully" })
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
-  }
-}
-
-// Delete an event
-exports.deleteEvent = async (req, res) => {
-  try {
-    const { eventId } = req.params
-
-    const event = await Event.findById(eventId)
-
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" })
-    }
-
-    // Check if user is authorized to delete this event
-    if (
-      req.user.role === "student" ||
-      (req.user.role === "faculty" && event.organizer.toString() !== req.user.userId)
-    ) {
-      return res.status(403).json({ message: "Unauthorized access" })
-    }
-
-    await event.deleteOne()
-
-    // Notify attendees about the cancelled event
-    for (const attendeeId of event.attendees) {
-      await Notification.create({
-        recipient: attendeeId,
-        sender: req.user.userId,
-        title: "Event Cancelled",
-        message: `The event "${event.title}" has been cancelled`,
-        type: "event",
-        relatedTo: {
-          model: "Event",
-          id: event._id,
-        },
-      })
-    }
-
-    res.status(200).json({ message: "Event deleted successfully" })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Error cancelling RSVP:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }

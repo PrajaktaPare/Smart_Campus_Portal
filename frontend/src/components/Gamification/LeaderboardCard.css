@@ -1,0 +1,72 @@
+.leaderboard-card {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.leaderboard-title {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  color: #212529;
+}
+
+.leaderboard-list {
+  margin-bottom: 15px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.leaderboard-item:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-item:hover {
+  background-color: #f8f9fa;
+}
+
+.leaderboard-item.current-user {
+  background-color: #e8f4ff;
+}
+
+.rank {
+  width: 40px;
+  font-weight: 600;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.top-rank {
+  font-size: 1.2rem;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.user-level {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.user-points {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.view-all-btn {
+  width: 100%;
+  margin-top: 10px;
+}

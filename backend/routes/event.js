@@ -1,27 +1,27 @@
 const express = require("express")
 const router = express.Router()
+const { auth, requireRole } = require("../middleware/auth")
 const eventController = require("../controllers/eventController")
-const auth = require("../middleware/auth")
+const Event = require("../models/Event")
+
+console.log("📅 Event routes loaded")
+
+// Apply auth middleware to all routes
+router.use(auth)
 
 // Get all events
-router.get("/", auth, eventController.getEvents)
+router.get("/", eventController.getAllEvents)
+
+// Create event (Faculty and Admin only)
+router.post("/", requireRole(["faculty", "admin"]), eventController.createEvent)
 
 // Get event by ID
-router.get("/:eventId", auth, eventController.getEventById)
+router.get("/:eventId", eventController.getEventById)
 
-// Create a new event
-router.post("/", auth, eventController.createEvent)
+// Update event (Faculty and Admin only)
+router.put("/:eventId", requireRole(["faculty", "admin"]), eventController.updateEvent)
 
-// Update an event
-router.put("/:eventId", auth, eventController.updateEvent)
-
-// RSVP to an event
-router.post("/:eventId/rsvp", auth, eventController.rsvpEvent)
-
-// Cancel RSVP to an event
-router.delete("/:eventId/rsvp", auth, eventController.cancelRsvp)
-
-// Delete an event
-router.delete("/:eventId", auth, eventController.deleteEvent)
+// Delete event (Faculty and Admin only)
+router.delete("/:eventId", requireRole(["faculty", "admin"]), eventController.deleteEvent)
 
 module.exports = router

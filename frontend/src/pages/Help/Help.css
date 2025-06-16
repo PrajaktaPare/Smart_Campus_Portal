@@ -1,0 +1,153 @@
+.help-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.help-header {
+  margin-bottom: 20px;
+}
+
+.help-search {
+  margin-top: 15px;
+}
+
+.help-search input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  font-size: 1rem;
+}
+
+.help-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.category-btn {
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.category-btn:hover {
+  background-color: #e9ecef;
+}
+
+.category-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.help-content {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.help-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.faq-list {
+  margin-bottom: 30px;
+}
+
+.faq-item {
+  margin-bottom: 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.faq-question {
+  padding: 15px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.faq-question:hover {
+  background-color: #e9ecef;
+}
+
+.faq-question.expanded {
+  background-color: #e9ecef;
+}
+
+.faq-toggle {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.faq-answer {
+  padding: 15px;
+  background-color: #fff;
+  border-top: 1px solid #dee2e6;
+  line-height: 1.6;
+  color: #495057;
+}
+
+.help-contact {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.help-contact h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.help-contact p {
+  margin-bottom: 15px;
+  color: #495057;
+}
+
+.contact-options {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.no-results {
+  text-align: center;
+  padding: 30px 0;
+  color: #6c757d;
+}
+
+.no-results-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .help-categories {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px;
+  }
+
+  .contact-options {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

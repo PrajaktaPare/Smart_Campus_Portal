@@ -1,21 +1,49 @@
 const jwt = require("jsonwebtoken")
+const User = require("../models/User")
 
-const auth = (req, res, next) => {
-  const token = req.header("Authorization")?.replace("Bearer ", "")
-  if (!token) return res.status(401).json({ message: "No token, authorization denied" })
-
+const auth = async (req, res, next) => {
   try {
-    // Check if JWT_SECRET is set
-    if (!process.env.JWT_SECRET) {
-      return res.status(500).json({ message: "Server configuration error: JWT secret not set" })
+    const token = req.header("Authorization")?.replace("Bearer ", "")
+
+    if (!token) {
+      return res.status(401).json({ message: "No token, authorization denied" })
     }
 
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = decoded
+
+    // Always fetch fresh user data from database
+    const user = await User.findById(decoded.userId).select("-password")
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found, authorization denied" })
+    }
+
+    // Attach user info to request
+    req.user = user
+    req.userId = user._id
     next()
-  } catch (err) {
+  } catch (error) {
+    console.error("Auth middleware error:", error)
     res.status(401).json({ message: "Token is not valid" })
   }
 }
 
-module.exports = auth
+// Role-based middleware
+const requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Authentication required" })
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        message: `Access denied. Required role: ${roles.join(" or ")}. Your role: ${req.user.role}`,
+      })
+    }
+
+    next()
+  }
+}
+
+module.exports = { auth, requireRole }

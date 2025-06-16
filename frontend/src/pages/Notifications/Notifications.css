@@ -1,0 +1,164 @@
+.notifications-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.notifications-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.notifications-filter {
+  margin-bottom: 20px;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.filter-btn:hover {
+  background-color: #e9ecef;
+}
+
+.filter-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: all 0.3s;
+}
+
+.notification-item:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.notification-item.unread {
+  border-left: 4px solid #007bff;
+  background-color: #f8f9fa;
+}
+
+.notification-icon {
+  font-size: 1.5rem;
+  margin-right: 15px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #212529;
+}
+
+.notification-message {
+  color: #495057;
+  margin-bottom: 5px;
+  font-size: 0.95rem;
+}
+
+.notification-date {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.notification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-left: 15px;
+}
+
+.no-notifications {
+  text-align: center;
+  padding: 40px 0;
+  color: #6c757d;
+}
+
+.no-notifications-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2rem;
+}
+
+.error {
+  color: #dc3545;
+}
+
+@media (max-width: 768px) {
+  .notifications-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .notifications-actions {
+    margin-top: 10px;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-buttons {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px;
+  }
+
+  .notification-item {
+    flex-direction: column;
+  }
+
+  .notification-icon {
+    margin-bottom: 10px;
+  }
+
+  .notification-actions {
+    flex-direction: row;
+    margin-left: 0;
+    margin-top: 10px;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
